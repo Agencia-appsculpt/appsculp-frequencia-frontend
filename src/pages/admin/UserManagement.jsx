@@ -13,7 +13,8 @@ const UserManagement = () => {
     name: '',
     email: '',
     role: 'aluno',
-    registrationNumber: ''
+    registrationNumber: '',
+    password: ''
   });
 
   useEffect(() => {
@@ -54,6 +55,17 @@ const UserManagement = () => {
       return;
     }
     
+    // Validar senha (apenas para criação de usuário)
+    if (!editingUser && !formData.password.trim()) {
+      setError('Senha é obrigatória para novos usuários');
+      return;
+    }
+    
+    if (!editingUser && formData.password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    
     // Preparar dados para envio
     const userData = {
       name: formData.name.trim(),
@@ -63,6 +75,11 @@ const UserManagement = () => {
       // que será substituído quando o usuário fizer login pela primeira vez
       firebaseUid: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     };
+    
+    // Adicionar senha apenas para criação de usuário
+    if (!editingUser && formData.password.trim()) {
+      userData.password = formData.password.trim();
+    }
     
     // Adicionar dados específicos baseado no papel
     if (formData.role === 'aluno' && formData.registrationNumber.trim()) {
@@ -135,7 +152,8 @@ const UserManagement = () => {
       name: '',
       email: '',
       role: 'aluno',
-      registrationNumber: ''
+      registrationNumber: '',
+      password: ''
     });
   };
 
@@ -306,12 +324,32 @@ const UserManagement = () => {
                   />
                 </div>
 
+                {/* Campo de senha apenas para criação de usuário */}
+                {!editingUser && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Senha Inicial
+                    </label>
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Digite a senha inicial"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Mínimo 6 caracteres. O usuário poderá alterar esta senha após o primeiro login.
+                    </p>
+                  </div>
+                )}
+
                 {/* Nota informativa */}
                 {!editingUser && (
                   <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
                     <p className="text-sm text-blue-800">
-                      <strong>Nota:</strong> O usuário criado precisará fazer login pela primeira vez 
-                      para ativar sua conta no Firebase. Uma senha temporária será enviada por email.
+                      <strong>Nota:</strong> O usuário criado poderá fazer login imediatamente 
+                      usando o email e a senha definida aqui.
                     </p>
                   </div>
                 )}
