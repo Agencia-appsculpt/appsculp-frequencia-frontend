@@ -58,7 +58,10 @@ const UserManagement = () => {
     const userData = {
       name: formData.name.trim(),
       email: formData.email.trim().toLowerCase(),
-      role: formData.role
+      role: formData.role,
+      // Para usuários criados via admin, vamos usar um firebaseUid temporário
+      // que será substituído quando o usuário fizer login pela primeira vez
+      firebaseUid: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     };
     
     // Adicionar dados específicos baseado no papel
@@ -302,6 +305,16 @@ const UserManagement = () => {
                     placeholder={formData.role === 'aluno' ? 'Ex: 2024001' : 'Ex: PROF001'}
                   />
                 </div>
+
+                {/* Nota informativa */}
+                {!editingUser && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                    <p className="text-sm text-blue-800">
+                      <strong>Nota:</strong> O usuário criado precisará fazer login pela primeira vez 
+                      para ativar sua conta no Firebase. Uma senha temporária será enviada por email.
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex space-x-3 pt-4">
                   <button
