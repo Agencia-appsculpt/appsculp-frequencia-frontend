@@ -74,10 +74,9 @@ export const AuthProvider = ({ children }) => {
   // Função para buscar perfil do usuário no backend
   const fetchUserProfile = async (firebaseUid) => {
     try {
-      // Aguardar um pouco para garantir que o token esteja pronto
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      console.log('Buscando perfil do usuário:', firebaseUid);
       const response = await api.get(`/users/firebase/${firebaseUid}`);
+      console.log('Perfil encontrado:', response.data);
       setUserProfile(response.data.user);
       return response.data.user;
     } catch (error) {
@@ -87,10 +86,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Função para verificar se o token está válido
-  const isTokenValid = async () => {
+  const isTokenValid = async (user) => {
     try {
-      if (!currentUser) return false;
-      const token = await currentUser.getIdToken(true); // force refresh
+      if (!user) return false;
+      const token = await user.getIdToken(true); // force refresh
+      console.log('Token válido obtido');
       return !!token;
     } catch (error) {
       console.error('Erro ao verificar token:', error);
@@ -101,19 +101,21 @@ export const AuthProvider = ({ children }) => {
   // Monitorar mudanças no estado de autenticação
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('Auth state changed:', user ? 'User logged in' : 'No user');
       setCurrentUser(user);
       
       if (user) {
         try {
-          // Aguardar um pouco para garantir que o token esteja disponível
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          console.log('Usuário autenticado, verificando token...');
           
           // Verificar se o token está válido
-          const tokenValid = await isTokenValid();
+          const tokenValid = await isTokenValid(user);
           if (tokenValid) {
+            console.log('Token válido, buscando perfil...');
             // Buscar perfil do usuário no backend
             await fetchUserProfile(user.uid);
             setUserReady(true);
+            console.log('Usuário pronto!');
           } else {
             console.error('Token inválido após login');
             setUserReady(false);
@@ -123,6 +125,7 @@ export const AuthProvider = ({ children }) => {
           setUserReady(false);
         }
       } else {
+        console.log('Usuário deslogado');
         setUserProfile(null);
         setUserReady(false);
       }
