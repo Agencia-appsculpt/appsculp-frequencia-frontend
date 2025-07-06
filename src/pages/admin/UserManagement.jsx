@@ -5,7 +5,7 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../../config/firebase.jsx';
 
 const UserManagement = () => {
-  const { userProfile } = useAuth();
+  const { userProfile, currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -87,44 +87,31 @@ const UserManagement = () => {
         
         await api.put(`/users/${editingUser.id}`, userData);
       } else {
-        // Criar novo usuário
-        console.log('Criando novo usuário com dados:', formData);
-        
-        // 1. Criar usuário no Firebase primeiro
-        const firebaseResult = await createUserWithEmailAndPassword(
-          auth, 
-          formData.email.trim().toLowerCase(), 
-          formData.password.trim()
-        );
-        
-        // 2. Atualizar perfil no Firebase
-        await updateProfile(firebaseResult.user, {
-          displayName: formData.name.trim()
-        });
-        
-        console.log('Usuário criado no Firebase:', firebaseResult.user.uid);
-        
-        // 3. Aguardar um pouco para garantir que o token esteja disponível
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // 4. Criar usuário no backend
-        const userData = {
-          firebaseUid: firebaseResult.user.uid,
+        // NOVO: Criar usuário via backend admin
+        const token = await currentUser.getIdToken();
+        const payload = {
           name: formData.name.trim(),
           email: formData.email.trim().toLowerCase(),
+          password: formData.password.trim(),
           role: formData.role
         };
-        
-        // Adicionar dados específicos baseado no papel
         if (formData.role === 'aluno' && formData.registrationNumber.trim()) {
-          userData.registrationNumber = formData.registrationNumber.trim();
+          payload.enrollmentNumber = formData.registrationNumber.trim();
         } else if (formData.role === 'professor' && formData.registrationNumber.trim()) {
-          userData.employeeId = formData.registrationNumber.trim();
+          payload.employeeId = formData.registrationNumber.trim();
         }
-        
-        console.log('Criando usuário no backend com dados:', userData);
-        const response = await api.post('/users', userData);
-        console.log('Resposta do servidor:', response.data);
+        const response = await fetch(`${api.defaults.baseURL.replace(/\/$/, '')}/admin/create-user`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Erro ao criar usuário');
+        }
       }
       
       await fetchUsers();
