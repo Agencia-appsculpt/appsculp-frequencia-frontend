@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userReady, setUserReady] = useState(false);
 
   // Função para fazer login
   const login = async (email, password) => {
@@ -43,6 +44,9 @@ export const AuthProvider = ({ children }) => {
       await updateProfile(result.user, {
         displayName: name
       });
+
+      // Aguardar um pouco para garantir que o token esteja disponível
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Criar/atualizar usuário no backend
       await api.post('/users', {
@@ -70,6 +74,9 @@ export const AuthProvider = ({ children }) => {
   // Função para buscar perfil do usuário no backend
   const fetchUserProfile = async (firebaseUid) => {
     try {
+      // Aguardar um pouco para garantir que o token esteja pronto
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const response = await api.get(`/users/firebase/${firebaseUid}`);
       setUserProfile(response.data.user);
       return response.data.user;
@@ -79,16 +86,45 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Função para verificar se o token está válido
+  const isTokenValid = async () => {
+    try {
+      if (!currentUser) return false;
+      const token = await currentUser.getIdToken(true); // force refresh
+      return !!token;
+    } catch (error) {
+      console.error('Erro ao verificar token:', error);
+      return false;
+    }
+  };
+
   // Monitorar mudanças no estado de autenticação
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       
       if (user) {
-        // Buscar perfil do usuário no backend
-        await fetchUserProfile(user.uid);
+        try {
+          // Aguardar um pouco para garantir que o token esteja disponível
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Verificar se o token está válido
+          const tokenValid = await isTokenValid();
+          if (tokenValid) {
+            // Buscar perfil do usuário no backend
+            await fetchUserProfile(user.uid);
+            setUserReady(true);
+          } else {
+            console.error('Token inválido após login');
+            setUserReady(false);
+          }
+        } catch (error) {
+          console.error('Erro ao inicializar usuário:', error);
+          setUserReady(false);
+        }
       } else {
         setUserProfile(null);
+        setUserReady(false);
       }
       
       setLoading(false);
@@ -100,10 +136,13 @@ export const AuthProvider = ({ children }) => {
   const value = {
     currentUser,
     userProfile,
+    userReady,
+    loading,
     login,
     register,
     logout,
-    fetchUserProfile
+    fetchUserProfile,
+    isTokenValid
   };
 
   return (

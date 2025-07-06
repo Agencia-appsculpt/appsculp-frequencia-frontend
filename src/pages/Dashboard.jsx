@@ -1,8 +1,22 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import { useApiReady } from '../hooks/use-api-ready.jsx';
 
 const Dashboard = () => {
   const { currentUser, userProfile } = useAuth();
+  const { isReady, loading } = useApiReady();
+
+  // Se ainda não está pronto, mostrar loading
+  if (!isReady || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const getWelcomeMessage = () => {
     const name = userProfile?.name || currentUser?.displayName || 'Usuário';
