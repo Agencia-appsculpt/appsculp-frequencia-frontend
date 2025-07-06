@@ -36,22 +36,69 @@ const UserManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validação dos campos
+    if (!formData.name.trim()) {
+      setError('Nome é obrigatório');
+      return;
+    }
+    
+    if (!formData.email.trim()) {
+      setError('Email é obrigatório');
+      return;
+    }
+    
+    // Validar formato do email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Email inválido');
+      return;
+    }
+    
+    // Preparar dados para envio
+    const userData = {
+      name: formData.name.trim(),
+      email: formData.email.trim().toLowerCase(),
+      role: formData.role
+    };
+    
+    // Adicionar dados específicos baseado no papel
+    if (formData.role === 'aluno' && formData.registrationNumber.trim()) {
+      userData.registrationNumber = formData.registrationNumber.trim();
+    } else if (formData.role === 'professor' && formData.registrationNumber.trim()) {
+      userData.employeeId = formData.registrationNumber.trim();
+    }
+    
+    // Log dos dados que estão sendo enviados
+    console.log('Dados do formulário sendo enviados:', userData);
+    
     try {
       if (editingUser) {
         // Atualizar usuário existente
-        await api.put(`/users/${editingUser.id}`, formData);
+        console.log('Atualizando usuário:', editingUser.id);
+        await api.put(`/users/${editingUser.id}`, userData);
       } else {
         // Criar novo usuário
-        await api.post('/users', formData);
+        console.log('Criando novo usuário com dados:', userData);
+        const response = await api.post('/users', userData);
+        console.log('Resposta do servidor:', response.data);
       }
       
       await fetchUsers();
       resetForm();
       setShowAddModal(false);
       setEditingUser(null);
+      setError(''); // Limpar erros anteriores
     } catch (error) {
-      console.error('Erro ao salvar usuário:', error);
-      setError(error.response?.data?.message || 'Erro ao salvar usuário');
+      console.error('Erro detalhado ao salvar usuário:', error);
+      console.error('Resposta do servidor:', error.response?.data);
+      console.error('Status do erro:', error.response?.status);
+      
+      // Mostrar erro mais detalhado
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          error.message || 
+                          'Erro ao salvar usuário';
+      setError(`Erro: ${errorMessage}`);
     }
   };
 

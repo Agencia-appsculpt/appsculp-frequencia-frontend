@@ -2,8 +2,8 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-const ProtectedRoute = ({ children }) => {
-  const { currentUser, userReady, loading } = useAuth();
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { currentUser, userProfile, userReady, loading } = useAuth();
 
   // Se ainda está carregando, mostrar loading
   if (loading) {
@@ -29,6 +29,15 @@ const ProtectedRoute = ({ children }) => {
         </div>
       </div>
     );
+  }
+
+  // Verificar se há restrição de roles
+  if (allowedRoles && userProfile) {
+    const userRole = userProfile.role;
+    if (!allowedRoles.includes(userRole)) {
+      console.log(`Acesso negado: usuário tem role ${userRole}, mas apenas ${allowedRoles.join(', ')} são permitidos`);
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   // Se tudo está pronto, renderizar o conteúdo protegido
