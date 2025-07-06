@@ -70,8 +70,8 @@ const UserManagement = () => {
     
     try {
       if (editingUser) {
-        // Atualizar usuário existente
-        console.log('Atualizando usuário:', editingUser.id);
+        // Atualizar usuário existente via rota admin
+        const token = await currentUser.getIdToken();
         const userData = {
           name: formData.name.trim(),
           email: formData.email.trim().toLowerCase(),
@@ -80,12 +80,23 @@ const UserManagement = () => {
         
         // Adicionar dados específicos baseado no papel
         if (formData.role === 'aluno' && formData.registrationNumber.trim()) {
-          userData.registrationNumber = formData.registrationNumber.trim();
+          userData.enrollmentNumber = formData.registrationNumber.trim();
         } else if (formData.role === 'professor' && formData.registrationNumber.trim()) {
           userData.employeeId = formData.registrationNumber.trim();
         }
         
-        await api.put(`/users/${editingUser.id}`, userData);
+        const response = await fetch(`${api.defaults.baseURL.replace(/\/$/, '')}/admin/update-user/${editingUser.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(userData)
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Erro ao atualizar usuário');
+        }
       } else {
         // NOVO: Criar usuário via backend admin
         const token = await currentUser.getIdToken();
@@ -149,7 +160,8 @@ const UserManagement = () => {
       name: user.name,
       email: user.email,
       role: user.role,
-      registrationNumber: user.Student?.registrationNumber || user.Teacher?.employeeId || ''
+      registrationNumber: user.Student?.registrationNumber || user.Teacher?.employeeId || '',
+      password: ''
     });
     setShowAddModal(true);
   };
@@ -158,13 +170,21 @@ const UserManagement = () => {
     if (!window.confirm('Tem certeza que deseja excluir este usuário?')) {
       return;
     }
-
     try {
-      await api.delete(`/users/${userId}`);
+      const token = await currentUser.getIdToken();
+      const response = await fetch(`${api.defaults.baseURL.replace(/\/$/, '')}/admin/delete-user/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Erro ao excluir usuário');
+      }
       await fetchUsers();
     } catch (error) {
-      console.error('Erro ao excluir usuário:', error);
-      setError('Erro ao excluir usuário');
+      setError(error.message || 'Erro ao excluir usuário');
     }
   };
 

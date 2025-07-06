@@ -8,7 +8,6 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'aluno'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -26,7 +25,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const { name, email, password, confirmPassword, role } = formData;
+    const { name, email, password, confirmPassword } = formData;
 
     // Validações
     if (!name || !email || !password || !confirmPassword) {
@@ -48,7 +47,7 @@ const Register = () => {
     setError('');
 
     try {
-      await register(email, password, name, role);
+      await register(email, password, name, 'aluno');
       navigate('/dashboard');
     } catch (error) {
       console.error('Erro no registro:', error);
@@ -125,23 +124,6 @@ const Register = () => {
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Digite seu email"
               />
-            </div>
-
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Tipo de Usuário
-              </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              >
-                <option value="aluno">Aluno</option>
-                <option value="professor">Professor</option>
-                <option value="admin">Administrador</option>
-              </select>
             </div>
             
             <div>

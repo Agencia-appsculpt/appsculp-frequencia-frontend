@@ -4,7 +4,8 @@ import {
   createUserWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth } from '../config/firebase.jsx';
 import api from '../config/api.jsx';
@@ -98,6 +99,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Função para resetar a senha
+  const resetPassword = async (email) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   // Monitorar mudanças no estado de autenticação
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -145,7 +156,8 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     fetchUserProfile,
-    isTokenValid
+    isTokenValid,
+    resetPassword
   };
 
   return (
