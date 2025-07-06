@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import api from '../../config/api.jsx';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '../../config/firebase.jsx';
 
 const UserManagement = () => {
   const { userProfile } = useAuth();
@@ -66,39 +68,61 @@ const UserManagement = () => {
       return;
     }
     
-    // Preparar dados para envio
-    const userData = {
-      name: formData.name.trim(),
-      email: formData.email.trim().toLowerCase(),
-      role: formData.role,
-      // Para usuários criados via admin, vamos usar um firebaseUid temporário
-      // que será substituído quando o usuário fizer login pela primeira vez
-      firebaseUid: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    };
-    
-    // Adicionar senha apenas para criação de usuário
-    if (!editingUser && formData.password.trim()) {
-      userData.password = formData.password.trim();
-    }
-    
-    // Adicionar dados específicos baseado no papel
-    if (formData.role === 'aluno' && formData.registrationNumber.trim()) {
-      userData.registrationNumber = formData.registrationNumber.trim();
-    } else if (formData.role === 'professor' && formData.registrationNumber.trim()) {
-      userData.employeeId = formData.registrationNumber.trim();
-    }
-    
-    // Log dos dados que estão sendo enviados
-    console.log('Dados do formulário sendo enviados:', userData);
-    
     try {
       if (editingUser) {
         // Atualizar usuário existente
         console.log('Atualizando usuário:', editingUser.id);
+        const userData = {
+          name: formData.name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          role: formData.role
+        };
+        
+        // Adicionar dados específicos baseado no papel
+        if (formData.role === 'aluno' && formData.registrationNumber.trim()) {
+          userData.registrationNumber = formData.registrationNumber.trim();
+        } else if (formData.role === 'professor' && formData.registrationNumber.trim()) {
+          userData.employeeId = formData.registrationNumber.trim();
+        }
+        
         await api.put(`/users/${editingUser.id}`, userData);
       } else {
         // Criar novo usuário
-        console.log('Criando novo usuário com dados:', userData);
+        console.log('Criando novo usuário com dados:', formData);
+        
+        // 1. Criar usuário no Firebase primeiro
+        const firebaseResult = await createUserWithEmailAndPassword(
+          auth, 
+          formData.email.trim().toLowerCase(), 
+          formData.password.trim()
+        );
+        
+        // 2. Atualizar perfil no Firebase
+        await updateProfile(firebaseResult.user, {
+          displayName: formData.name.trim()
+        });
+        
+        console.log('Usuário criado no Firebase:', firebaseResult.user.uid);
+        
+        // 3. Aguardar um pouco para garantir que o token esteja disponível
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // 4. Criar usuário no backend
+        const userData = {
+          firebaseUid: firebaseResult.user.uid,
+          name: formData.name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          role: formData.role
+        };
+        
+        // Adicionar dados específicos baseado no papel
+        if (formData.role === 'aluno' && formData.registrationNumber.trim()) {
+          userData.registrationNumber = formData.registrationNumber.trim();
+        } else if (formData.role === 'professor' && formData.registrationNumber.trim()) {
+          userData.employeeId = formData.registrationNumber.trim();
+        }
+        
+        console.log('Criando usuário no backend com dados:', userData);
         const response = await api.post('/users', userData);
         console.log('Resposta do servidor:', response.data);
       }
@@ -114,10 +138,20 @@ const UserManagement = () => {
       console.error('Status do erro:', error.response?.status);
       
       // Mostrar erro mais detalhado
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.error || 
-                          error.message || 
-                          'Erro ao salvar usuário';
+      let errorMessage = 'Erro ao salvar usuário';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Este email já está em uso no Firebase';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'A senha é muito fraca';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Email inválido';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setError(`Erro: ${errorMessage}`);
     }
   };
