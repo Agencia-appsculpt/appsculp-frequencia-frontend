@@ -324,15 +324,15 @@ const ClassManagement = () => {
                   <h4 className="font-medium text-gray-900 mb-3">Alunos Disponíveis</h4>
                   <div className="max-h-64 overflow-y-auto border rounded-md">
                     {students
-                      .filter(student => !selectedClass.Students?.some(s => s.id === student.id))
+                      .filter(student => !selectedClass.Students?.some(s => s.id === student.student.id))
                       .map((student) => (
-                        <div key={student.id} className="flex justify-between items-center p-3 border-b">
+                        <div key={student.student.id} className="flex justify-between items-center p-3 border-b">
                           <div>
                             <p className="font-medium">{student.name}</p>
                             <p className="text-sm text-gray-600">{student.email}</p>
                           </div>
                           <button
-                            onClick={() => handleAddStudentToClass(student.id)}
+                            onClick={() => handleAddStudentToClass(student.student.id)}
                             className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
                           >
                             Adicionar
