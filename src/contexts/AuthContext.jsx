@@ -123,8 +123,8 @@ export const AuthProvider = ({ children }) => {
           const tokenValid = await isTokenValid(user);
           if (tokenValid) {
             console.log('Token válido, buscando perfil...');
-            // Buscar perfil do usuário no backend
-            await fetchUserProfile(user.uid);
+        // Buscar perfil do usuário no backend
+        await fetchUserProfile(user.uid);
             setUserReady(true);
             console.log('Usuário pronto!');
           } else {
