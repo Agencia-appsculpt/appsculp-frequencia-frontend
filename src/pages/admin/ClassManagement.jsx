@@ -256,9 +256,9 @@ const ClassManagement = () => {
                     required
                   >
                     <option value="">Selecione um professor</option>
-                    {teachers.map((teacher) => (
-                      <option key={teacher.id} value={teacher.id}>
-                        {teacher.name} ({teacher.email}) - ID: {teacher.id}
+                    {teachers.filter(t => t.Teacher?.id).map((teacher) => (
+                      <option key={teacher.Teacher.id} value={teacher.Teacher.id}>
+                        {teacher.name} ({teacher.email}) - ID: {teacher.Teacher.id}
                       </option>
                     ))}
                   </select>
