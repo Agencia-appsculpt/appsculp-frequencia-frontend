@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import api from '../config/api.jsx';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { BrowserMultiFormatReader } from '@zxing/browser';
 
 const ScanQRPage = () => {
   const { userProfile } = useAuth();
@@ -13,7 +13,8 @@ const ScanQRPage = () => {
   const [messageType, setMessageType] = useState(''); // 'success' or 'error'
   const [recentScans, setRecentScans] = useState([]);
   const [showScanner, setShowScanner] = useState(false);
-  const scannerRef = React.useRef(null);
+  const videoRef = React.useRef(null);
+  const codeReaderRef = React.useRef(null);
 
   useEffect(() => {
     fetchClasses();
@@ -116,25 +117,19 @@ const ScanQRPage = () => {
     }
   };
 
-  const handleScanQRCode = () => {
+  const handleScanQRCode = async () => {
     setShowScanner(true);
-    setTimeout(() => {
-      if (!scannerRef.current) {
-        scannerRef.current = new Html5QrcodeScanner(
-          'qr-reader',
-          { fps: 10, qrbox: 250 },
-          false
-        );
-        scannerRef.current.render(
-          (decodedText) => {
-            setQrString(decodedText);
-            setShowScanner(false);
-            scannerRef.current.clear();
-          },
-          (error) => {
-            // Ignorar erros de leitura
-          }
-        );
+    setTimeout(async () => {
+      if (videoRef.current) {
+        codeReaderRef.current = new BrowserMultiFormatReader();
+        try {
+          const result = await codeReaderRef.current.decodeOnceFromVideoDevice(undefined, videoRef.current);
+          setQrString(result.getText());
+          setShowScanner(false);
+          codeReaderRef.current.reset();
+        } catch (err) {
+          // Ignorar erros de leitura
+        }
       }
     }, 100);
   };
@@ -204,14 +199,14 @@ const ScanQRPage = () => {
                 {showScanner && (
                   <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-4 max-w-xs w-full relative">
-                      <div id="qr-reader" style={{ width: '100%' }} />
+                      <video ref={videoRef} style={{ width: '100%', borderRadius: 8 }} autoPlay muted playsInline />
                       <button
                         type="button"
                         onClick={() => {
                           setShowScanner(false);
-                          if (scannerRef.current) {
-                            scannerRef.current.clear();
-                            scannerRef.current = null;
+                          if (codeReaderRef.current) {
+                            codeReaderRef.current.reset();
+                            codeReaderRef.current = null;
                           }
                         }}
                         className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1"
