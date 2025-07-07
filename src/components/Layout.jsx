@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 
 const Layout = ({ children }) => {
   const { currentUser, userProfile, logout } = useAuth();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -66,13 +67,18 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="bg-white shadow sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex justify-between items-center py-4 md:py-6">
             {/* Logo */}
             <div className="flex items-center">
+              <button className="md:hidden mr-3" onClick={() => setSidebarOpen(true)} aria-label="Abrir menu">
+                <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
               <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">AS</span>
               </div>
@@ -81,7 +87,6 @@ const Layout = ({ children }) => {
                 <p className="text-sm text-gray-600">Sistema de Controle de Frequência Escolar</p>
               </div>
             </div>
-
             {/* User Info */}
             <div className="flex items-center space-x-4">
               <div className="text-right">
@@ -101,16 +106,23 @@ const Layout = ({ children }) => {
         </div>
       </header>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <nav className="w-64 bg-white shadow-sm min-h-screen">
+      <div className="flex-1 flex flex-col md:flex-row">
+        {/* Sidebar - mobile drawer */}
+        <div className={`fixed inset-0 z-40 bg-black bg-opacity-40 transition-opacity md:hidden ${sidebarOpen ? 'block' : 'hidden'}`} onClick={() => setSidebarOpen(false)}></div>
+        <nav className={`fixed z-50 top-0 left-0 h-full w-64 bg-white shadow-sm transform transition-transform duration-200 md:static md:translate-x-0 md:shadow-none md:min-h-screen ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:block`}>
           <div className="p-4">
+            <button className="md:hidden mb-4" onClick={() => setSidebarOpen(false)} aria-label="Fechar menu">
+              <svg className="w-7 h-7 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             <ul className="space-y-2">
               {getNavigationItems().map((item) => (
                 <li key={item.name}>
                   <Link
                     to={item.href}
                     className="block px-4 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                    onClick={() => setSidebarOpen(false)}
                   >
                     {item.name}
                   </Link>
@@ -119,19 +131,18 @@ const Layout = ({ children }) => {
             </ul>
           </div>
         </nav>
-
         {/* Main Content */}
-        <main className="flex-1 p-8">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 p-2 sm:p-4 md:p-8 max-w-full overflow-x-auto">
+          <div className="max-w-7xl mx-auto w-full">
             {children}
           </div>
         </main>
       </div>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200">
+      <footer className="bg-white border-t border-gray-200 mt-auto">
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-2">
             <p className="text-sm text-gray-500">
               © 2025 APPSCULP AGENCIA. Todos os direitos reservados.
             </p>

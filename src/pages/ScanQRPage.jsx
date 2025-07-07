@@ -135,10 +135,9 @@ const ScanQRPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 px-2 sm:px-4 md:px-6 lg:px-8">
-      <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+    <div className="max-w-4xl mx-auto space-y-6 px-2 sm:px-4 md:px-6 lg:px-8 w-full">
+      <div className="bg-white shadow rounded-lg p-2 sm:p-4 md:p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Escanear QR Code</h1>
-        
         {message && (
           <div className={`px-4 py-3 rounded-md mb-6 ${
             messageType === 'success' 
@@ -148,7 +147,6 @@ const ScanQRPage = () => {
             {message}
           </div>
         )}
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Formulário de Escaneamento */}
           <div className="space-y-4">
@@ -170,25 +168,24 @@ const ScanQRPage = () => {
                 ))}
               </select>
             </div>
-
             <form onSubmit={handleScanQR} className="space-y-4">
               <div>
                 <label htmlFor="qrString" className="block text-sm font-medium text-gray-700 mb-2">
                   Código QR do Aluno
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch gap-2">
                   <textarea
                     id="qrString"
                     value={qrString}
                     onChange={(e) => setQrString(e.target.value)}
                     placeholder="Cole aqui o código QR escaneado ou digite manualmente"
                     rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none"
                   />
                   <button
                     type="button"
                     onClick={handleScanQRCode}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full p-2 flex-shrink-0"
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full p-2 flex-shrink-0 self-center sm:self-auto"
                     title="Ler QR Code pela câmera"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -217,39 +214,24 @@ const ScanQRPage = () => {
                   </div>
                 )}
               </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? 'Processando...' : 'Registrar Presença'}
-                </button>
-                <button
-                  type="button"
-                  onClick={generateClassQR}
-                  className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
-                >
-                  QR da Aula
-                </button>
-              </div>
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                disabled={loading}
+              >
+                {loading ? 'Registrando...' : 'Registrar Presença'}
+              </button>
             </form>
-
-            {/* Instruções */}
-            <div className="bg-blue-50 p-4 rounded-lg mt-4">
-              <h4 className="font-medium text-blue-900 mb-2">Como usar:</h4>
-              <ol className="text-sm text-blue-800 space-y-1">
-                <li>1. Selecione a turma</li>
-                <li>2. Peça para o aluno mostrar seu QR Code</li>
-                <li>3. Clique no ícone de QR Code para abrir a câmera</li>
-                <li>4. O código será preenchido automaticamente</li>
-                <li>5. Clique em "Registrar Presença"</li>
-              </ol>
-            </div>
+            <button
+              type="button"
+              onClick={generateClassQR}
+              className="w-full bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors mt-2"
+            >
+              QR da Aula
+            </button>
           </div>
-
-          {/* Lista de Escaneamentos Recentes */}
-          <div>
+          {/* Recent Scans */}
+          <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Presenças Registradas Hoje</h3>
             
             {recentScans.length === 0 ? (

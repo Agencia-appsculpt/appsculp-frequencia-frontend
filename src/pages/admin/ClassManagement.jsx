@@ -157,12 +157,12 @@ const ClassManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 px-2 sm:px-4 md:px-6 lg:px-8 w-full max-w-full">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
         <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Turmas</h1>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+          className="w-full md:w-auto bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors mt-2 md:mt-0"
         >
           Adicionar Turma
         </button>
@@ -175,15 +175,15 @@ const ClassManagement = () => {
       )}
 
       {/* Lista de Turmas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {classes.map((classItem) => (
-          <div key={classItem.id} className="bg-white shadow rounded-lg p-6">
-            <div className="flex justify-between items-start mb-4">
+          <div key={classItem.id} className="bg-white shadow rounded-lg p-4 flex flex-col h-full">
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-start mb-4">
               <div>
                 <h3 className="text-lg font-medium text-gray-900">{classItem.name}</h3>
                 <p className="text-sm text-gray-600">{classItem.subject}</p>
               </div>
-              <div className="flex space-x-1">
+              <div className="flex space-x-1 mt-2 sm:mt-0">
                 <button
                   onClick={() => handleEdit(classItem)}
                   className="text-blue-600 hover:text-blue-900 text-sm"
