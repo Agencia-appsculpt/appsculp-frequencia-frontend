@@ -15,11 +15,8 @@ const ClassManagement = () => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    subject: '',
-    description: '',
     teacherId: '',
-    schedule: '',
-    room: ''
+    schoolYear: ''
   });
 
   useEffect(() => {
@@ -61,20 +58,24 @@ const ClassManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     try {
+      const payload = {
+        name: formData.name,
+        teacherId: formData.teacherId,
+        schoolYear: Number(formData.schoolYear)
+      };
       if (editingClass) {
-        await api.put(`/classes/${editingClass.id}`, formData);
+        await api.put(`/classes/${editingClass.id}`, payload);
       } else {
-        await api.post('/classes', formData);
+        await api.post('/classes', payload);
       }
-      
       await fetchClasses();
       resetForm();
       setShowAddModal(false);
       setEditingClass(null);
     } catch (error) {
       console.error('Erro ao salvar turma:', error);
+      console.log('Detalhe do erro:', error.response?.data);
       setError(error.response?.data?.message || 'Erro ao salvar turma');
     }
   };
@@ -83,11 +84,8 @@ const ClassManagement = () => {
     setEditingClass(classItem);
     setFormData({
       name: classItem.name,
-      subject: classItem.subject,
-      description: classItem.description || '',
       teacherId: classItem.teacherId,
-      schedule: classItem.schedule || '',
-      room: classItem.room || ''
+      schoolYear: classItem.schoolYear
     });
     setShowAddModal(true);
   };
@@ -134,11 +132,8 @@ const ClassManagement = () => {
   const resetForm = () => {
     setFormData({
       name: '',
-      subject: '',
-      description: '',
       teacherId: '',
-      schedule: '',
-      room: ''
+      schoolYear: ''
     });
   };
 
@@ -252,19 +247,6 @@ const ClassManagement = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Matéria
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Professor
                   </label>
                   <select
@@ -284,40 +266,15 @@ const ClassManagement = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Horário
+                    Ano Letivo
                   </label>
                   <input
-                    type="text"
-                    value={formData.schedule}
-                    onChange={(e) => setFormData({...formData, schedule: e.target.value})}
+                    type="number"
+                    value={formData.schoolYear}
+                    onChange={(e) => setFormData({...formData, schoolYear: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ex: Segunda 08:00-10:00"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Sala
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.room}
-                    onChange={(e) => setFormData({...formData, room: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ex: Sala 101"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Descrição
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    rows={3}
-                    placeholder="Descrição opcional da turma"
+                    required
+                    placeholder="Ex: 2025"
                   />
                 </div>
 
