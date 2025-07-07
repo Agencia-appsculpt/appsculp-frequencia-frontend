@@ -13,6 +13,7 @@ import Unauthorized from './pages/Unauthorized.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import QRCodePage from './pages/QRCodePage.jsx';
 import ScanQRPage from './pages/ScanQRPage.jsx';
+import TeacherClasses from './pages/TeacherClasses.jsx';
 
 // Páginas administrativas
 import UserManagement from './pages/admin/UserManagement.jsx';
@@ -55,6 +56,13 @@ function App() {
               <ProtectedRoute allowedRoles={['professor', 'admin']}>
                 <Layout>
                   <ScanQRPage />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher/classes" element={
+              <ProtectedRoute allowedRoles={['professor']}>
+                <Layout>
+                  <TeacherClasses />
                 </Layout>
               </ProtectedRoute>
             } />
