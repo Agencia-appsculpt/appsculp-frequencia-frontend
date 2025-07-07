@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import { FaUserCircle } from 'react-icons/fa';
 
 const Layout = ({ children }) => {
   const { currentUser, userProfile, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userPopoverOpen, setUserPopoverOpen] = useState(false);
+  const userIconRef = useRef(null);
 
   const handleLogout = async () => {
     try {
@@ -72,35 +75,54 @@ const Layout = ({ children }) => {
       <header className="bg-white shadow sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4 md:py-6">
-            {/* Logo */}
-            <div className="flex items-center">
-              <button className="md:hidden mr-3" onClick={() => setSidebarOpen(true)} aria-label="Abrir menu">
+            {/* Logo e nome do site */}
+            <div className="flex items-center gap-3">
+              <button className="md:hidden" onClick={() => setSidebarOpen(true)} aria-label="Abrir menu">
                 <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
-              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AS</span>
+              <div className="h-10 w-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-lg flex items-center justify-center shadow">
+                <span className="text-white font-bold text-lg">AS</span>
               </div>
-              <div className="ml-3">
-                <h1 className="text-xl font-bold text-gray-900">APPSCULP Frequência</h1>
-                <p className="text-sm text-gray-600">Sistema de Controle de Frequência Escolar</p>
+              <div className="ml-2">
+                <h1 className="text-2xl font-extrabold text-blue-700 tracking-tight leading-tight">APPSCULP <span className="text-gray-900">Frequência</span></h1>
+                <p className="text-xs text-gray-500 font-medium">Sistema de Controle de Frequência Escolar</p>
               </div>
             </div>
-            {/* User Info */}
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{userProfile?.name || currentUser?.email}</p>
-                <div className="flex items-center space-x-2">
-                  {userProfile?.role && getRoleBadge(userProfile.role)}
-                </div>
-              </div>
+            {/* User Info com popover */}
+            <div className="relative flex items-center space-x-2">
               <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
+                ref={userIconRef}
+                onClick={() => setUserPopoverOpen((v) => !v)}
+                className="focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full"
+                aria-label="Abrir informações do usuário"
               >
-                Sair
+                <FaUserCircle className="w-9 h-9 text-blue-600 hover:text-blue-800 transition-colors" />
               </button>
+              {/* Popover do usuário */}
+              {userPopoverOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-100 z-50 p-4 animate-fade-in" onMouseLeave={() => setUserPopoverOpen(false)}>
+                  <div className="flex items-center gap-3 mb-2">
+                    <FaUserCircle className="w-10 h-10 text-blue-600" />
+                    <div>
+                      <p className="text-base font-semibold text-gray-900">{userProfile?.name || currentUser?.email}</p>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 capitalize">
+                        {userProfile?.role}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-600 mb-2">
+                    <p>Email: <span className="font-medium text-gray-900">{userProfile?.email || currentUser?.email}</span></p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors mt-2"
+                  >
+                    Sair
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -140,13 +162,13 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-auto">
+      <footer className="bg-gradient-to-tr from-blue-50 to-white border-t border-gray-200 mt-auto">
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-2">
-            <p className="text-sm text-gray-500">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <p className="text-sm text-gray-500 font-medium">
               © 2025 APPSCULP AGENCIA. Todos os direitos reservados.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs text-gray-400">
               Sistema de Frequência Escolar v1.0.0
             </p>
           </div>
