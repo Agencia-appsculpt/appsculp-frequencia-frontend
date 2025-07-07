@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext.jsx';
 import api from '../../config/api.jsx';
 
 const ClassManagement = () => {
-  const { userProfile } = useAuth();
+  const { userProfile, currentUser } = useAuth();
   const [classes, setClasses] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [students, setStudents] = useState([]);
@@ -40,8 +40,14 @@ const ClassManagement = () => {
 
   const fetchTeachers = async () => {
     try {
-      const response = await api.get('/users?role=professor');
-      setTeachers(response.data.users || []);
+      if (!currentUser) return;
+      const token = await currentUser.getIdToken();
+      const response = await api.get('/users/professors', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setTeachers(response.data.teachers || []);
     } catch (error) {
       console.error('Erro ao buscar professores:', error);
     }
@@ -138,7 +144,7 @@ const ClassManagement = () => {
   };
 
   const getTeacherName = (teacherId) => {
-    const teacher = teachers.find(t => t.id === teacherId);
+    const teacher = teachers.find(t => t.teacherId === teacherId);
     return teacher ? teacher.name : 'Professor não encontrado';
   };
 
@@ -256,9 +262,9 @@ const ClassManagement = () => {
                     required
                   >
                     <option value="">Selecione um professor</option>
-                    {teachers.filter(t => t.Teacher?.id).map((teacher) => (
-                      <option key={teacher.Teacher.id} value={teacher.Teacher.id}>
-                        {teacher.name} ({teacher.email}) - ID: {teacher.Teacher.id}
+                    {teachers.map((teacher) => (
+                      <option key={teacher.teacherId} value={teacher.teacherId}>
+                        {teacher.name} ({teacher.email}) - Matrícula: {teacher.employeeId}
                       </option>
                     ))}
                   </select>
