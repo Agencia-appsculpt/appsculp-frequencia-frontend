@@ -65,7 +65,7 @@ const Dashboard = () => {
           {
             title: 'Minhas Turmas',
             description: 'Gerencie suas turmas',
-            href: '/classes',
+            href: '/teacher/classes',
             color: 'bg-green-600'
           },
           {
