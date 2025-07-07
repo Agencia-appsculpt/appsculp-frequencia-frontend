@@ -324,7 +324,7 @@ const ClassManagement = () => {
                   <h4 className="font-medium text-gray-900 mb-3">Alunos Disponíveis</h4>
                   <div className="max-h-64 overflow-y-auto border rounded-md">
                     {students
-                      .filter(student => !selectedClass.Students?.some(s => s.id === student.student.id))
+                      .filter(student => student.student && !selectedClass.Students?.some(s => s.id === student.student.id))
                       .map((student) => (
                         <div key={student.student.id} className="flex justify-between items-center p-3 border-b">
                           <div>
