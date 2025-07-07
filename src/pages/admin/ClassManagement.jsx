@@ -276,7 +276,7 @@ const ClassManagement = () => {
                     <option value="">Selecione um professor</option>
                     {teachers.map((teacher) => (
                       <option key={teacher.id} value={teacher.id}>
-                        {teacher.name}
+                        {teacher.name} ({teacher.email}) - ID: {teacher.id}
                       </option>
                     ))}
                   </select>
